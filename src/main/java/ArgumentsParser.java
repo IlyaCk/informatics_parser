@@ -124,7 +124,7 @@ public class ArgumentsParser {
 
         tableUrl = config.getString("url");
         studentIndex = config.getInt("student");
-        problemsNum = config.getInt("num");
+        problemsNum = config.getInt("count");
     }
 
 }
