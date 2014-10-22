@@ -1,0 +1,15 @@
+apply plugin: 'java'
+
+sourceCompatibility = 1.7
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+    compile 'org.jsoup:jsoup:1.7.3'
+    compile 'org.seleniumhq.selenium:selenium-java:2.25.0'
+    compile 'com.martiansoftware:jsap:2.1'
+}

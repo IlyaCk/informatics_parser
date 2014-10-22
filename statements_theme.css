@@ -1,0 +1,219 @@
+/* $Id: statements_theme.css,v 1.1.8.1 2007/05/20 06:02:03 skodak Exp $*/
+/* later should be defined in themes*/
+
+
+.statements_chapter_title {
+    font-family: Tahoma, Verdana, Arial, Helvetica, sans-serif;
+    text-align: left;
+    font-size: large;
+    font-weight: bold;
+
+    margin-left: 0px;
+    margin-bottom: 20px;
+}
+
+.statements_content {
+    text-align: left;
+}
+
+img.bigicon {
+  vertical-align:middle;
+  margin-right:4px;
+  margin-left:4px;
+  width:24px;
+  height:24px;
+  border:0px;
+}
+
+/* == TOC styles == */
+
+/* toc style NONE */
+.statements_toc_none ul {
+    margin-left: 5px;
+    padding-left: 0px;
+}
+.statements_toc_none ul ul {
+    margin-left: 0px;
+    padding-left: 0px;
+}
+.statements_toc_none li {
+    margin-top: 5px;
+    list-style: none;
+}
+.statements_toc_none li li {
+    margin-top: 0px;
+    list-style: none;
+}
+
+
+/* toc style NUMBERED */
+.statements_toc_numbered ul {
+    margin-left: 5px;
+    padding-left: 0px;
+}
+.statements_toc_numbered ul ul {
+    margin-left: 0px;
+    padding-left: 0px;
+}
+.statements_toc_numbered li {
+    margin-top: 5px;
+    list-style: none;
+}
+.statements_toc_numbered li li {
+    margin-top: 0px;
+    list-style: none;
+}
+
+
+/* toc style NUMBERED */
+.statements_toc_alpha ul {
+    margin-left: 0px;
+    padding-left: 0px;
+}
+.statements_toc_alpha ul ul {
+    margin-left: 0px;
+    padding-left: 0px;
+}
+.statements_toc_alpha li {
+    margin-top: 15px;
+    list-style: none;
+}
+.statements_toc_alpha li li {
+    margin-top: 0px;
+    list-style: none;
+}
+
+
+/*toc style BULLETS */
+.statements_toc_bullets ul {
+    margin-left: 5px;
+    padding-left: 0px;
+}
+.statements_toc_bullets ul ul {
+    margin-left: 20px;
+    padding-left: 0px;
+}
+.statements_toc_bullets li {
+    margin-top: 5px;
+    list-style: none;
+}
+.statements_toc_bullets li li {
+    margin-top: 0px;
+    list-style: circle;
+}
+
+
+/* toc style INDENTED*/
+.statements_toc_indented ul {
+    margin-left: 0px;
+    padding-left: 0px;
+}
+.statements_toc_indented ul ul {
+    margin-left: 15px;
+    padding-left: 0px;
+}
+.statements_toc_indented li {
+    margin-top: 5px;
+    list-style: none;
+}
+.statements_toc_indented li li {
+    margin-top: 0px;
+    list-style: none;
+}
+body {background-color: #FFFFFF}
+
+A.LeftLink:link {text-decoration: none; font-family:Verdana; font-size:10pt; color:#1D4D9E}
+A.LeftLink:visited {text-decoration: none; font-family:Verdana; font-size:10pt; color:#1D4D9E}
+A.LeftLink:hover {text-decoration: none; font-family:Verdana; font-size:10pt; color:red}
+
+A.NewsLink:link {text-decoration: none; font-family:Verdana; font-size:11px; color:#243e90}
+A.NewsLink:visited {text-decoration: none; font-family:Verdana; font-size:11px; color:#243e90}
+A.NewsLink:hover {text-decoration: none; font-family:Verdana; font-size:11px; color:red}
+
+A.NBLink:link {text-decoration: none; font-family:Verdana; font-size:11pt; color:#1D4D9E}
+A.NBLink:visited {text-decoration: none; font-family:Verdana; font-size:11pt; color:#1D4D9E}
+A.NBLink:hover {text-decoration: none; font-family:Tahoma; font-size:11pt; color:red}
+
+A.RLink:link {text-decoration: none; font-family:Arial; font-size:10pt; color:#1D4D9E}
+A.RLink:visited {text-decoration: none; font-family:Arial; font-size:10pt; color:#1D4D9E}
+A.RLink:hover {text-decoration: none; font-family:Arial; font-size:10pt; color:red}
+
+Font.RFont{text-decoration: none; font-family:Arial; font-size:10pt; color:red}
+
+
+Div.LeftSmallText {font-family:Verdana; font-size:8pt; color:#1D4D9E; text-align:justify}
+Div.CaptionText {font-family:Arial; font-size:10pt; color:#1D4D9E}
+Div.LCText {font-family:Tahoma,Verdana; font-size:10pt; color:#1D4D9E}
+Div.BlackText {font-family:Verdana; font-size:10pt; text-align:justify; color:#000000}
+Div.DNText {font-family:Arial; font-size:10pt; color:#1D4D9E; text-align:center}
+Div.FooterText {font-family:Verdana; font-size:8pt; color:#1D4D9E; text-align:center}
+Div.PTCaption {font-family:Arial; font-size:10pt; color:#1D4D9E; font-weight:bold}
+Div.redmsg {font-family:Arial; font-size:10pt; color:#ff4545; font-weight:bold}
+Div.PTText {font-family:Arial; font-size:10pt}
+Div.No {font-family:Verdana; font-size:9pt;text-decoration: none; color:Red}
+Div.PCaption {font-family:Arial; font-size:14pt; text-align:center}
+Div.LeftPCaption {font-family:Arial; font-size:12pt; text-align:left; font-weight:bold; color:#1D4D9E}
+Div.PCaptionText {font-family:Arial; font-size:10pt; color:#1D4D9E; padding:2px}
+Div.LBC {font-family:Arial; font-size:10pt; color:#1D4D9E; font-weight:bold}
+Div.NewsText {font-size: 11px; font-family: Verdana, Arial; color: #243e90}
+
+Table.ProblemsTable {border: 1px solid #7693C4;border-right: 0px; border-bottom: 0px}
+Table.NewsTable {border: #E3ECF6 1px solid; border-bottom: 0px}
+  td.NT {border-bottom: #E3ECF6 1px solid; font-family:Verdana; font-size:10pt}
+
+Table.BlueTable{border: 1px solid #CCCCCC;border-right: 0px; border-bottom: 0px;font-family:Verdana; font-size:10pt}
+  Table.BlueTable td {border-right: 1px solid #CCCCCC;border-bottom: 1px solid #CCCCCC; text-align:center; vertical-align: middle; sellspacing: 0; cellpadding: 0}
+
+Table.Form_style{border: 1px solid #DDDDDD;border-right: 0px; border-bottom: 0px;font-family:Verdana; font-size:10pt}
+  Table.Form_style td {border-right: 1px solid #DDDDDD;border-bottom: 1px solid #7693C4; text-align:center; vertical-align: middle; sellspacing: 0; cellpadding: 0}
+
+  
+Table.ResultsTable{border: 1px solid #DDDDDD;border-right: 0px; border-bottom: 0px;font-family:Verdana; font-size:10pt}
+  Table.ResultsTable td {border-right: 1px solid #DDDDDD;border-bottom: 1px solid #7693C4; text-align:left; vertical-align: middle}
+
+Table.BlueDashedTable {border: 1px dashed #7693C4}
+Table.Form {border: 0px}
+Table.Form td {border: 0px} 
+
+Td. {border-right: 1px solid #CCCCCC;border-bottom: 1px solid #CCCCCC; text-align:center; vertical-align:middle}
+Td.RBDbc {border-right: 1px dashed #7693C4;border-bottom: 1px dashed #7693C4; vertical-align:middle}
+Td.RDbc {border-right: 1px dashed #7693C4; vertical-align:middle}
+Td.Rbc {border-right: 1px solid #7693C4; text-align:center; vertical-align:middle}
+Td.Bbc {border-bottom: 1px solid #7693C4; text-align:center; vertical-align:middle}
+Td.bc {border-bottom: 0px;border-right: 0px; text-align:center; vertical-align:middle}
+Td.input {border: 0px; vertical-align: middle}
+Td.field_caption {border: 0px; vertial-align: top; text-align: left}
+
+Td.Caption {background-color:#55CC00;border-right: 1px solid #CCCCCC;border-bottom: 1px solid #CCCCCC; text-align:center; vertical-align: middle}
+
+Td.form_elem_caption {background-color:#EBF0F7;border-right: 1px solid #EBF0F7;border-bottom: 1px solid #7693C4; text-align:center; vertical-align: middle}
+
+Tr.Caption {background-color:#EEEEEE; text-align:center; vertical-align:middle}
+  Tr.Caption td {border-right: 1px solid #CCCCCC;border-bottom: 1px solid #CCCCCC; text-align:center; vertical-align: middle}
+
+A.Yes:link {font-family:Verdana; font-size:9pt;text-decoration: none; color:Green}
+A.Yes:visited {font-family:Verdana; font-size:9pt;text-decoration: none; color:Green}
+A.Yes:hover {font-family:Verdana; font-size:9pt;text-decoration: none; color:#1D4D9E}
+
+A.PTLink:link {text-decoration: none; font-family:Verdana; font-size:9pt; color:#1D4D9E}
+A.PTLink:visited {text-decoration: none; font-family:Verdana; font-size:9pt; color:#1D4D9E}
+A.PTLink:hover {text-decoration: none; font-family:Verdana; font-size:9pt; color:red}
+
+A.MailLink:link {text-decoration: none; font-family:Verdana; font-size:10pt; color:Blue}
+A.MailLink:visited {text-decoration: none; font-family:Verdana; font-size:10pt; color:Blue}
+A.MailLink:hover {text-decoration: none; font-family:Verdana; font-size:10pt; color:Red}
+.Input
+{
+	Border-Style: Solid; 
+	Border-Width: 1; 
+	Border-Color: #0066aa;
+	background-color:#F4F4F4;
+	font-size:10pt;
+	font-family:Verdana;
+	font-weight:normal;
+}
+
+
+A.TextLink:link {font-family:Arial; font-size:10pt; color:#1D4D9E}
+A.TextLink:visited {font-family:Arial; font-size:10pt}
+A.TextLink:hover {font-family:Arial; font-size:10pt; color:red}
