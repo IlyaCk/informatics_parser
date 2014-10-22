@@ -91,7 +91,7 @@ public class ArgumentsParser {
         jsap.registerParameter(numOption);
 
         FlaggedOption studentOption = new FlaggedOption("student")
-                .setStringParser(JSAP.STRING_PARSER)
+                .setStringParser(JSAP.INTEGER_PARSER)
                 .setRequired(true)
                 .setLongFlag("student")
                 .setShortFlag('s');
