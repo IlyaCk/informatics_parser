@@ -1,4 +1,3 @@
-import com.google.common.io.Files;
 import com.martiansoftware.jsap.JSAPException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -7,16 +6,18 @@ import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 
 public class Parser {
 
     private static final String HOME_DIR = System.getProperty("user.dir");
 
-    private static final File POLYGON_CSS = new File(HOME_DIR + File.separator + "polygon.css");
-    private static final File THEME_CSS = new File(HOME_DIR + File.separator + "statements_theme.css");
-    private static final File LATEX_MATH_ML_JS = new File(HOME_DIR + File.separator + "LaTeXMathML.js");
+    private static final String POLYGON_CSS = getResourceAsString("/polygon.css");
+    private static final String THEME_CSS = getResourceAsString("/statements_theme.css");
+    private static final String LATEX_MATH_ML_JS = getResourceAsString("/LaTeXMathML.js");
 
     private static final String CONTENT_LOCATION = ".statements_content";
     private static final String SUBMIT_LOCATION = "#submit";
@@ -29,10 +30,18 @@ public class Parser {
             BEST_SOLVES_LOCATION, SUBMIT_LOCATION, SUBMIT_BOX_LOCATION, BOTTOM_LINE_LOCATION, UPPER_LINE_LOCATION
     };
 
-
     private static WebDriver driver = new SilentHtmlUnitDriver();
 
     private static ArgumentsParser argumentsParser;
+
+    private static String getResourceAsString(String name) {
+        return convertStreamToString(Parser.class.getResourceAsStream(name));
+    }
+
+    private static String convertStreamToString(java.io.InputStream is) {
+        java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
+        return s.hasNext() ? s.next() : "";
+    }
 
     public static void main(String[] args) throws JSAPException {
         argumentsParser = new ArgumentsParser(args);
@@ -64,9 +73,18 @@ public class Parser {
         File copyPolygonTo = new File(dir + File.separator + "polygon.css");
         File copyThemeTo = new File(dir + File.separator + "statements_theme.css");
         File copyLatexMathMlTo = new File(dir + File.separator + "LaTeXMathML.js");
-        Files.copy(LATEX_MATH_ML_JS, copyLatexMathMlTo);
-        Files.copy(POLYGON_CSS, copyPolygonTo);
-        Files.copy(THEME_CSS, copyThemeTo);
+
+        BufferedWriter mathMlWriter = new BufferedWriter(new FileWriter(copyLatexMathMlTo));
+        BufferedWriter polygonWriter = new BufferedWriter(new FileWriter(copyPolygonTo));
+        BufferedWriter themeWriter = new BufferedWriter(new FileWriter(copyThemeTo));
+
+        mathMlWriter.write(LATEX_MATH_ML_JS);
+        polygonWriter.write(POLYGON_CSS);
+        themeWriter.write(THEME_CSS);
+
+        mathMlWriter.close();
+        polygonWriter.close();
+        themeWriter.close();
     }
 
     private static void parseProblemForStudent(Participant participant, Table table) throws IOException, IllegalArgumentException {

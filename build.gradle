@@ -8,14 +8,22 @@ repositories {
 }
 
 task fatJar(type: Jar) {
-    manifest {
-        attributes 'Implementation-Title': 'informatics.mccme.ru parser',
-                'Implementation-Version': version,
-                'Main-Class': 'Parser'
-    }
     baseName = project.name + '-all'
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
+    manifest {
+        attributes 'Implementation-Title': 'informatics.mccme.ru parser', 'Implementation-Version': version
+        attributes 'Main-Class': 'Parser'
+    }
+}
+
+jar {
+    manifest {
+        attributes 'Main-Class': 'Parser'
+    }
+    from ("${projectDir}/src/main/resources") {
+        include('**')
+    }
 }
 
 dependencies {
