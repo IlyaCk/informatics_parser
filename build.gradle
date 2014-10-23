@@ -1,14 +1,14 @@
 apply plugin: 'java'
 
 sourceCompatibility = 1.7
-version = '1.0'
+version = ''
 
 repositories {
     mavenCentral()
 }
 
 task fatJar(type: Jar) {
-    baseName = project.name + '-all'
+    baseName = project.name
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
     manifest {
@@ -20,9 +20,6 @@ task fatJar(type: Jar) {
 jar {
     manifest {
         attributes 'Main-Class': 'Parser'
-    }
-    from ("${projectDir}/src/main/resources") {
-        include('**')
     }
 }
 

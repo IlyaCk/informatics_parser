@@ -76,7 +76,7 @@ public class ArgumentsParser {
                 .setRequired(true)
                 .setLongFlag("url")
                 .setShortFlag('u');
-        urlOption.setHelp("Url of the table to parse");
+        urlOption.setHelp("Url of the table to parse (must be inside quotes, like \"http://...\")");
 
         jsap.registerParameter(urlOption);
 
@@ -115,7 +115,7 @@ public class ArgumentsParser {
             }
 
             System.err.println();
-            System.err.println("Usage: java " + Parser.class.getName());
+            System.err.println("Usage: java -jar " + Parser.class.getName() + ".jar");
             System.err.println("                " + jsap.getUsage());
             System.err.println();
             System.err.println(jsap.getHelp());
