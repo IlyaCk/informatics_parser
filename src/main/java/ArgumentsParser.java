@@ -4,48 +4,14 @@ public class ArgumentsParser {
 
     private String tableUrl;
     private Integer studentIndex;
-    private Integer problemsNum = 2;
+    private Integer problemsNum;
+    private Integer timeout;
 
     private String[] args;
 
     public ArgumentsParser(String[] args) {
         this.args = args;
     }
-
-//    public boolean parse() {
-//        String arg;
-//        String argContent;
-//        for (String a : args) {
-//            arg = a.substring(0, a.indexOf("="));
-//            argContent = a.substring(a.indexOf("=") + 1);
-//            switch (arg) {
-//                case "url":
-//                    tableUrl = argContent;
-//                    break;
-//                case "student":
-//                    studentIndex = Integer.parseInt(argContent);
-//                    break;
-//                case "num":
-//                    problemsNum = Integer.parseInt(argContent);
-//                    break;
-//                case "help":
-//                    printHelp();
-//                    return false;
-//                default:
-//                    System.out.println("Wrong argument provided. Format is:\n" +
-//                            "url=<Table url> student=<Student's index in table> num=<Number of problems to parse>");
-//                    return false;
-//            }
-//        }
-//        if (studentIndex == null) {
-//            System.out.println("The 'student' argument is required");
-//            return false;
-//        } else if (tableUrl == null) {
-//            System.out.println("The 'url' argument is required");
-//            return false;
-//        }
-//        return true;
-//    }
 
     public String getTableUrl() {
         return tableUrl;
@@ -59,14 +25,9 @@ public class ArgumentsParser {
         return problemsNum;
     }
 
-//    private void printHelp() {
-//        String help = "params:" + "\n"
-//                + "url=<String> - URL of the results table page" + "\n"
-//                + "student=<int> - Student's index in the table" + "\n"
-//                + "num=<int> - Number of solved problems to parse";
-//
-//        System.out.println(help);
-//    }
+    public Integer getTimeout() {
+        return timeout;
+    }
 
     public void processArgs() throws JSAPException {
         JSAP jsap = new JSAP();
@@ -99,6 +60,16 @@ public class ArgumentsParser {
 
         jsap.registerParameter(studentOption);
 
+        FlaggedOption timeoutOption = new FlaggedOption("timeout")
+                .setStringParser(JSAP.INTEGER_PARSER)
+                .setRequired(true)
+                .setLongFlag("timeout")
+                .setDefault("0")
+                .setShortFlag('t');
+        timeoutOption.setHelp("Timeout (in seconds) between requests. May be useful when server rejects too many requests in a row from one IP.");
+
+        jsap.registerParameter(timeoutOption);
+
         JSAPResult config = jsap.parse(args);
 
         // check whether the command line was valid, and if it wasn't,
@@ -125,6 +96,7 @@ public class ArgumentsParser {
         tableUrl = config.getString("url");
         studentIndex = config.getInt("student");
         problemsNum = config.getInt("count");
+        timeout = config.getInt("timeout")*1000;
     }
 
 }

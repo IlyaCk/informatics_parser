@@ -59,12 +59,17 @@ public class Parser {
         System.setProperty("user.dir", participantDir);
         for (int i = 0; i < argumentsParser.getProblemsNum(); i++) {
             try {
+                if (i > 0) {
+                    Thread.sleep(argumentsParser.getTimeout());
+                }
                 parseProblemForStudent(participant, table);
             } catch (IllegalArgumentException e) {
                 System.out.println("All available solves parsed. Exiting...");
                 break;
             } catch (IOException ex) {
                 System.err.println(ex.toString());
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
