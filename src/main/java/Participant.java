@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Random;
-import java.util.regex.Pattern;
 
 public class Participant {
     private int number;
@@ -42,21 +41,8 @@ public class Participant {
     }
 
     public void writeHtmlToFile(String html, String dir, String name) throws IOException {
-        String start = "<html>"
-                + "<head>"
-                + "<meta content=\"text/html; charset=utf-8\" http-equiv=\"content-type\"></meta>"
-                + "<link rel=\"stylesheet\" type=\"text/css\" href=\"polygon.css\">"
-                + "<link rel=\"stylesheet\" type=\"text/css\" href=\"statements_theme.css\">"
-                + "<script type=\"text/javascript\" src=\"LaTeXMathML.js\" />"
-                + "</head>"
-                + "<body>";
-        String end = "</body></html>";
-
-        Pattern p = Pattern.compile("^(\\s+(<br\\s*/>)?\\n?)", Pattern.MULTILINE);
-        html = p.matcher(html).replaceAll("");
-
         try (PrintWriter writer = new PrintWriter(dir + File.separator + name + ".html", "UTF-8")) {
-            writer.print(start + html + end);
+            writer.print(html);
         }
     }
 

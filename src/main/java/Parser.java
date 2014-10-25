@@ -1,7 +1,6 @@
 import com.martiansoftware.jsap.JSAPException;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.jsoup.select.Elements;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -10,6 +9,7 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 public class Parser {
 
@@ -23,11 +23,14 @@ public class Parser {
     private static final String SUBMIT_LOCATION = "#submit";
     private static final String SUBMIT_BOX_LOCATION = ".submit_box";
     private static final String BOTTOM_LINE_LOCATION = ".statements_content > h1:nth-child(5)";
+    private static final String ANALYSIS_LOCATION = "#analysis";
+    private static final String IDEAL_SOLUTIONS_LOCATION = "#ideal-solutions";
     private static final String UPPER_LINE_LOCATION = "div.statements_chapter_title:nth-child(1) > h1:nth-child(4)";
     private static final String BEST_SOLVES_LOCATION = "div.statements_chapter_title:nth-child(1) > div:nth-child(5)";
 
     private static final String[] TO_REMOVE = {
-            BEST_SOLVES_LOCATION, SUBMIT_LOCATION, SUBMIT_BOX_LOCATION, BOTTOM_LINE_LOCATION, UPPER_LINE_LOCATION
+            BEST_SOLVES_LOCATION, SUBMIT_LOCATION, SUBMIT_BOX_LOCATION, BOTTOM_LINE_LOCATION, UPPER_LINE_LOCATION,
+            ANALYSIS_LOCATION, IDEAL_SOLUTIONS_LOCATION
     };
 
     private static WebDriver driver = new SilentHtmlUnitDriver();
@@ -106,21 +109,37 @@ public class Parser {
         link.click();
 
         Document page = Jsoup.parse(driver.getPageSource());
-        String html = cleanPage(page).html();
 
-        participant.writeHtmlToFile(html, newDir, problemName);
+        participant.writeHtmlToFile(cleanPage(page), newDir, problemName);
         copyResourcesInto(dir);
 
         System.setProperty("user.dir", HOME_DIR);
         System.out.println("Problem " + problemChar + " successfully parsed!");
     }
 
-    private static Elements cleanPage(Document page) {
+    private static String cleanPage(Document page) {
         for (String location : TO_REMOVE) {
             page.select(location).remove();
         }
 
-        return page.select(CONTENT_LOCATION);
+        String html = page.select(CONTENT_LOCATION).html();
+
+        String start = "<html>"
+                + "<head>"
+                + "<meta content=\"text/html; charset=utf-8\" http-equiv=\"content-type\"></meta>"
+                + "<link rel=\"stylesheet\" type=\"text/css\" href=\"polygon.css\">"
+                + "<link rel=\"stylesheet\" type=\"text/css\" href=\"statements_theme.css\">"
+                + "<script type=\"text/javascript\" src=\"LaTeXMathML.js\"></script>"
+                + "</head>"
+                + "<body>";
+        String end = "</body></html>";
+
+        Pattern p = Pattern.compile("^(\\s+(<br\\s*/>)?\\n?)", Pattern.MULTILINE);
+        html = p.matcher(html).replaceAll("");
+
+        html = start + html + end;
+
+        return html;
     }
 
 }
