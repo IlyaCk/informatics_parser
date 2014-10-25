@@ -62,7 +62,8 @@ public class Participant {
 
     private void getPermissions(Table table) {
         ArrayList<Integer> temp = new ArrayList<>();
-        String[] line = table.getTable()[number];
+        String[][] t = table.getTable();
+        String[] line = t[number];
         for (int i = 0; i < line.length; i++) {
             if (line[i].equals("+")) {
                 temp.add(i);
