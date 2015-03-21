@@ -3,20 +3,37 @@ import com.martiansoftware.jsap.*;
 public class ArgumentsParser {
 
     private String tableUrl;
-    private Integer studentIndex;
-    private Integer problemsNum;
+    private String blockSubDir;
+//    private Integer studentIndex;
+//    private Integer problemsNum;
+    private Integer numForChoose1;
+    private Integer numForChoose2;
     private Integer timeout;
 
     private String[] args;
 
+    public Integer getNumForChoose1() {
+        return numForChoose1;
+    }
+
+    public Integer getNumForChoose2() {
+        return numForChoose2;
+    }
+
+    public String getBlockSubDir() {
+        return blockSubDir;
+    }
+
     public ArgumentsParser(String[] args) {
         this.args = args;
+
     }
 
     public String getTableUrl() {
         return tableUrl;
     }
 
+/*
     public int getStudentIndex() {
         return studentIndex;
     }
@@ -24,6 +41,7 @@ public class ArgumentsParser {
     public int getProblemsNum() {
         return problemsNum;
     }
+*/
 
     public Integer getTimeout() {
         return timeout;
@@ -41,6 +59,7 @@ public class ArgumentsParser {
 
         jsap.registerParameter(urlOption);
 
+/*
         FlaggedOption numOption = new FlaggedOption("count")
                 .setStringParser(JSAP.INTEGER_PARSER)
                 .setRequired(true)
@@ -59,6 +78,7 @@ public class ArgumentsParser {
         studentOption.setHelp("Student's index in the table");
 
         jsap.registerParameter(studentOption);
+*/
 
         FlaggedOption timeoutOption = new FlaggedOption("timeout")
                 .setStringParser(JSAP.INTEGER_PARSER)
@@ -69,6 +89,36 @@ public class ArgumentsParser {
         timeoutOption.setHelp("Timeout (in seconds) between requests. May be useful when server rejects too many requests in a row from one IP.");
 
         jsap.registerParameter(timeoutOption);
+
+        FlaggedOption blockSubDirOption = new FlaggedOption("subdir")
+                .setStringParser(JSAP.STRING_PARSER)
+                .setRequired(true)
+                .setLongFlag("subdir")
+                .setDefault("")
+                .setShortFlag('d');
+        blockSubDirOption.setHelp("To organize statements of many blocks to same student's folder, this can be used as subdir inside student's folder.");
+
+        jsap.registerParameter(blockSubDirOption);
+
+        FlaggedOption numSolvedForChooseTwoOption = new FlaggedOption("numFor2")
+                .setStringParser(JSAP.INTEGER_PARSER)
+                .setRequired(true)
+                .setLongFlag("numSolvedForChooseTwo")
+                .setDefault("5")
+                .setShortFlag('2');
+        numSolvedForChooseTwoOption.setHelp("For what minimal quantity of automatically-passed solutions student should defend TWO problems");
+
+        jsap.registerParameter(numSolvedForChooseTwoOption);
+
+        FlaggedOption numSolvedForChooseOneOption = new FlaggedOption("numFor1")
+                .setStringParser(JSAP.INTEGER_PARSER)
+                .setRequired(true)
+                .setLongFlag("numSolvedForChooseOne")
+                .setDefault("2")
+                .setShortFlag('1');
+        numSolvedForChooseOneOption.setHelp("For what minimal quantity of automatically-passed solutions student should defend ONE problem");
+
+        jsap.registerParameter(numSolvedForChooseOneOption);
 
         JSAPResult config = jsap.parse(args);
 
@@ -94,8 +144,12 @@ public class ArgumentsParser {
         }
 
         tableUrl = config.getString("url");
-        studentIndex = config.getInt("student");
-        problemsNum = config.getInt("count");
+        blockSubDir = config.getString("subdir");
+//        studentIndex = config.getInt("student");
+//        problemsNum = config.getInt("count");
+        numForChoose1 = config.getInt("numFor1");
+        numForChoose2 = config.getInt("numFor2");
+
         timeout = config.getInt("timeout")*1000;
     }
 

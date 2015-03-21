@@ -9,6 +9,8 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 public class Parser {
@@ -33,6 +35,8 @@ public class Parser {
             ANALYSIS_LOCATION, IDEAL_SOLUTIONS_LOCATION
     };
 
+    static Map<String, String> alreadyParsedProblems;
+
     private static WebDriver driver = new SilentHtmlUnitDriver();
 
     private static ArgumentsParser argumentsParser;
@@ -49,23 +53,62 @@ public class Parser {
     public static void main(String[] args) throws JSAPException {
         argumentsParser = new ArgumentsParser(args);
         argumentsParser.processArgs();
+        alreadyParsedProblems = new HashMap<>();
 
         System.out.println("Parser started!");
 
         Table table = new Table(driver, argumentsParser.getTableUrl());
         System.out.println("Table parsed!");
 
+        for(int studIdx=0; studIdx<table.getStudentsNumber(); studIdx++) {
+            if(table.getSolvedProblemsNum()[studIdx] < argumentsParser.getNumForChoose1()) {
+                continue;
+            }
+            Participant participant = new Participant(studIdx+1, table);
+            String participantDir = HOME_DIR + File.separator + table.getStudentNames()[participant.getNumber()-1];
+            if(!argumentsParser.getBlockSubDir().isEmpty()) {
+                participantDir = participantDir + File.separator + argumentsParser.getBlockSubDir();
+            }
+            File dir = new File(participantDir);
+            dir.mkdirs();
+            System.setProperty("user.dir", participantDir);
+            int numProblemsToGet = 1;
+            if(table.getSolvedProblemsNum()[studIdx] >= argumentsParser.getNumForChoose2()) {
+                numProblemsToGet = 2;
+            }
+            for (int theProb = 0; theProb < numProblemsToGet; theProb++) {
+                try {
+                    if (theProb > 0) {
+                        Thread.sleep(argumentsParser.getTimeout());
+                    }
+                    parseProblemForStudent(participant, table, participantDir);
+                } catch (IllegalArgumentException e) {
+                    System.out.println("All available solves parsed. Exiting...");
+                    break;
+                } catch (IOException ex) {
+                    System.err.println(ex.toString());
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+        }
+
+/*
         Participant participant = new Participant(argumentsParser.getStudentIndex(), table);
-        String participantDir = HOME_DIR + File.separator + participant.getNumber();
+        String participantDir = HOME_DIR + File.separator + table.getStudentNames()[participant.getNumber()-1];
+        if(!argumentsParser.getBlockSubDir().isEmpty()) {
+            participantDir = participantDir + File.separator + argumentsParser.getBlockSubDir();
+        }
         File dir = new File(participantDir);
-        dir.mkdir();
+        dir.mkdirs();
         System.setProperty("user.dir", participantDir);
         for (int i = 0; i < argumentsParser.getProblemsNum(); i++) {
             try {
                 if (i > 0) {
                     Thread.sleep(argumentsParser.getTimeout());
                 }
-                parseProblemForStudent(participant, table);
+                parseProblemForStudent(participant, table, participantDir);
             } catch (IllegalArgumentException e) {
                 System.out.println("All available solves parsed. Exiting...");
                 break;
@@ -75,6 +118,7 @@ public class Parser {
                 e.printStackTrace();
             }
         }
+*/
     }
 
     private static void copyResourcesInto(File dir) throws IOException {
@@ -95,22 +139,29 @@ public class Parser {
         themeWriter.close();
     }
 
-    private static void parseProblemForStudent(Participant participant, Table table) throws IOException, IllegalArgumentException {
+    private static void parseProblemForStudent(Participant participant, Table table, String participantDir) throws IOException, IllegalArgumentException {
         String problemChar = participant.getRandomProblemChar(table);
         String problemName = "Задача " + problemChar;
 
-        String newDir = HOME_DIR + File.separator + participant.getNumber() + File.separator + problemName;
+        String newDir = participantDir + File.separator + problemName;
         File dir = new File(newDir);
         dir.mkdir();
 
         System.setProperty("user.dir", newDir);
 
-        WebElement link = driver.findElement(By.partialLinkText(problemName));
-        link.click();
+        String textToSaveNow = null;
+        if(!alreadyParsedProblems.containsKey(problemName)) {
+            WebElement link = driver.findElement(By.partialLinkText(problemName));
+            link.click();
 
-        Document page = Jsoup.parse(driver.getPageSource());
+            Document page = Jsoup.parse(driver.getPageSource());
+            textToSaveNow = cleanPage(page);
+            alreadyParsedProblems.put(problemName, textToSaveNow);
+        } else {
+            textToSaveNow = alreadyParsedProblems.get(problemName);
+        }
 
-        participant.writeHtmlToFile(cleanPage(page), newDir, problemName);
+        participant.writeHtmlToFile(textToSaveNow, newDir, problemName);
         copyResourcesInto(dir);
 
         System.setProperty("user.dir", HOME_DIR);

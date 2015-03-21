@@ -15,8 +15,18 @@ public class Table {
     private List<WebElement> sourceTable;
     private String[][] table;
     private String[] problemNames;
+    private String[] studentNames;
+    private int[] solvedProblemsNum;
     private int problemsNumber;
     private int studentsNumber;
+
+    public int getStudentsNumber() {
+        return studentsNumber;
+    }
+
+    public int[] getSolvedProblemsNum() {
+        return solvedProblemsNum;
+    }
 
     public Table(WebDriver driver, String url) {
         driver.get(url);
@@ -31,7 +41,10 @@ public class Table {
         }
         sourceTable.remove(0); // remove problems line from table
 
-        studentsNumber = getStudentsNumber();
+
+        studentsNumber = calcStudentsNumber();
+        studentNames = new String[studentsNumber];
+        solvedProblemsNum = new int[studentsNumber];
         table = new String[studentsNumber][problemsNumber];
 
         WebElement a;
@@ -40,13 +53,27 @@ public class Table {
         for (int i = 0; i < studentsNumber; i++) {
             a = sourceTable.get(i);
             b = a.findElements(By.tagName("td"));
+            studentNames[i] = b.get(1).getText().replaceAll("[\\sі]", "_");
+            try {
+                solvedProblemsNum[i] = Integer.valueOf(b.get(problemsNumber + 2).getText());
+            } catch (NumberFormatException e) {
+                System.err.println("Failed to get quantity of solved problems for student " + studentNames[i] + " (" + (i+1) + ")");
+                System.err.println(e.getMessage());
+                solvedProblemsNum[i] = -1;
+            }
+            int solvedProblemsNumCountedByPluses = 0;
             for (int j = 0; j < problemsNumber; j++) {
                 firstChar = b.get(j + 2).getText().charAt(0);
                 if (firstChar == '+') {
                     table[i][j] = "+";
+                    solvedProblemsNumCountedByPluses++;
                 } else {
                     table[i][j] = "-";
                 }
+            }
+            if(solvedProblemsNum[i] != solvedProblemsNumCountedByPluses) {
+                System.err.println("Incosistent data for student " + studentNames[i] + " (" + (i+1) + ")");
+                System.err.println("solvedProblemsNum (got from last column) is " + solvedProblemsNum[i] + ", but solvedProblemsNumCountedByPluses is " + solvedProblemsNumCountedByPluses);
             }
         }
     }
@@ -55,7 +82,7 @@ public class Table {
         return table;
     }
 
-    private int getStudentsNumber() {
+    private int calcStudentsNumber() {
         int num = 0;
         List<WebElement> line;
         String row;
@@ -82,6 +109,10 @@ public class Table {
             System.out.print(s + " ");
         }
         System.out.println();
+    }
+
+    public String[] getStudentNames() {
+        return studentNames;
     }
 
     public String[] getProblemNames() {
