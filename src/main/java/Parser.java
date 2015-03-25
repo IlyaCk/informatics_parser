@@ -161,6 +161,7 @@ public class Parser {
             textToSaveNow = alreadyParsedProblems.get(problemName);
         }
 
+
         participant.writeHtmlToFile(textToSaveNow, newDir, problemName);
         copyResourcesInto(dir);
 
