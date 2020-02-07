@@ -1,8 +1,6 @@
 import org.apache.commons.lang.ArrayUtils;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -10,7 +8,7 @@ public class Participant {
     private int number;
     private int[] permitted;
 
-    public Participant(int number, Table table) {
+    public Participant(int number, TableAbstract table) {
         this.number = number - 1;
         getPermissions(table);
     }
@@ -22,36 +20,33 @@ public class Participant {
         System.out.println();
     }
 
-    public int[] getPermitted(Table table) {
+    public int[] getPermitted(TableFromResults tableFromResults) {
         return permitted;
     }
 
-    public String getRandomProblem(Table table) {
+    public String getRandomProblem(TableFromResults tableFromResults) {
         int random = new Random().nextInt(permitted.length);
         int randInt = permitted[random];
         this.permitted = ArrayUtils.removeElement(permitted, randInt);
-        return "Задача " + table.getProblemNames()[randInt];
+        return "Задача " + tableFromResults.getProblemNames()[randInt];
     }
 
-    public String getRandomProblemChar(Table table) throws IllegalArgumentException {
+    public String getRandomProblemChar(TableAbstract tableFromResults) throws IllegalArgumentException {
         int random = new Random().nextInt(permitted.length);
         int randInt = this.permitted[random];
         this.permitted = ArrayUtils.removeElement(permitted, randInt);
-        return table.getProblemNames()[randInt];
+        return tableFromResults.getProblemNames()[randInt];
     }
 
     public void writeHtmlToFile(String html, String dir, String name) throws IOException {
-        try (PrintWriter writer = new PrintWriter(dir + File.separator + name + ".html", "UTF-8")) {
-            writer.print(html);
-        }
     }
 
-    private void getPermissions(Table table) {
+    private void getPermissions(TableAbstract table) {
         ArrayList<Integer> temp = new ArrayList<>();
         String[][] t = table.getTable();
         String[] line = t[number];
         for (int i = 0; i < line.length; i++) {
-            if (line[i].equals("+")) {
+            if ("+".equals(line[i])) {
                 temp.add(i);
             }
         }
@@ -65,3 +60,25 @@ public class Participant {
         return number + 1;
     }
 }
+
+
+
+
+/*
+"-"
+
+"-+-+-+-"
+"*"
+
+"."
+
+
+$v_K$
+
+$v_2$
+
+$v_{12}$
+
+$c_2$
+
+ */

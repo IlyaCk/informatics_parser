@@ -1,3 +1,5 @@
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
@@ -6,34 +8,42 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class Table {
+public class TableFromResults extends TableAbstract {
 
     public static final String TABLE_PATH = "/html/body/div/div[3]/table/tbody/tr[2]/td[2]/div/div/div/table/tbody/tr";
 
     private static final Pattern STUDENT_NUM_PATTERN = Pattern.compile("(\\d+)\\Z");
 
     private List<WebElement> sourceTable;
-    private String[][] table;
-    private String[] problemNames;
-    private String[] studentNames;
-    private int[] solvedProblemsNum;
-    private int problemsNumber;
-    private int studentsNumber;
 
-    public int getStudentsNumber() {
-        return studentsNumber;
-    }
+//    public TableFromResults(WebDriver driver, String url) {
+//    this.driver = driver;
+    public TableFromResults(ArgumentsParser argumentsParser) {
+        this.argumentsParser = argumentsParser;
+        String url = argumentsParser.getTableUrl();
 
-    public int[] getSolvedProblemsNum() {
-        return solvedProblemsNum;
-    }
-
-    public Table(WebDriver driver, String url) {
+        WebDriver driver = new SilentHtmlUnitDriver(true);
         driver.get(url);
-        sourceTable = driver.findElements(By.xpath(TABLE_PATH)); // get the table
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        this.driver = driver;
+////        sourceTable = driver.findElements(By.tagName("BlueTable"));
+        sourceTable = this.driver.findElements(By.xpath(TABLE_PATH)); // get the table
+        if(sourceTable.isEmpty()) {
+            System.out.println("TABLE EMPTY!!!\nRe-check if the table available w/o password");
+        } else {
+            System.out.println("sourceTable looks to be successfully downloaded");
+        }
         List<WebElement> problems = sourceTable.get(0).findElements(By.tagName("td")); // get problems line of table
         problemsNumber = problems.size() - 4; // get number of problems
-        
+        if(argumentsParser.getTotalProblems()!=-1 && argumentsParser.getTotalProblems()!=problemsNumber)
+            throw new IllegalArgumentException("Total Number of problems is given, but incorrect");
+        if(argumentsParser.getTotalProblems() == -1)
+            argumentsParser.setTotalProblems(problemsNumber);
+
         /* get problem names */
         problemNames = new String[problems.size() - 4];
         for (int i = 2; i < problems.size() - 2; i++) {
@@ -41,6 +51,7 @@ public class Table {
         }
         sourceTable.remove(0); // remove problems line from table
 
+        System.out.println(problemNames);
 
         studentsNumber = calcStudentsNumber();
         studentNames = new String[studentsNumber];
@@ -72,14 +83,10 @@ public class Table {
                 }
             }
             if(solvedProblemsNum[i] != solvedProblemsNumCountedByPluses) {
-                System.err.println("Incosistent data for student " + studentNames[i] + " (" + (i+1) + ")");
+                System.err.println("Inconsistent data for student " + studentNames[i] + " (" + (i+1) + ")");
                 System.err.println("solvedProblemsNum (got from last column) is " + solvedProblemsNum[i] + ", but solvedProblemsNumCountedByPluses is " + solvedProblemsNumCountedByPluses);
             }
         }
-    }
-
-    public String[][] getTable() {
-        return table;
     }
 
     private int calcStudentsNumber() {
@@ -104,31 +111,6 @@ public class Table {
         return num;
     }
 
-    public void printProblemNames() {
-        for (String s : problemNames) {
-            System.out.print(s + " ");
-        }
-        System.out.println();
-    }
-
-    public String[] getStudentNames() {
-        return studentNames;
-    }
-
-    public String[] getProblemNames() {
-        return problemNames;
-    }
-
-    public void printTable() {
-        printProblemNames();
-        for (String[] a : table) {
-            for (String b : a) {
-                System.out.print(b + " ");
-            }
-            System.out.println();
-        }
-    }
-
     public void printSourceTable() {
         for (WebElement a : sourceTable) {
             for (WebElement b : a.findElements(By.tagName("td"))) {
@@ -137,5 +119,21 @@ public class Table {
             System.out.println();
         }
     }
+
+    @Override
+    protected Document getProblemPage(String problemName) {
+        WebElement link = driver.findElement(By.partialLinkText(problemName));
+        System.out.println("before <<link.click()>>");
+        link.click();
+        try {
+            Thread.sleep(argumentsParser.getTimeout());
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        System.out.println("after <<link.click()>>");
+        Document page = Jsoup.parse(driver.getPageSource());
+        return page;
+    }
+
 
 }

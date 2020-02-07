@@ -1,14 +1,10 @@
 import com.martiansoftware.jsap.JSAPException;
-import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.openqa.selenium.By;
 import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
@@ -29,15 +25,23 @@ public class Parser {
     private static final String IDEAL_SOLUTIONS_LOCATION = "#ideal-solutions";
     private static final String UPPER_LINE_LOCATION = "div.statements_chapter_title:nth-child(1) > h1:nth-child(4)";
     private static final String BEST_SOLVES_LOCATION = "div.statements_chapter_title:nth-child(1) > div:nth-child(5)";
+    private static final String TABLES_AT_TOP = "table:nth-child(1)";
+
+    public static String getCurrTimeStr() {
+        return currTimeStr;
+    }
+
+    private static String currTimeStr;
 
     private static final String[] TO_REMOVE = {
             BEST_SOLVES_LOCATION, SUBMIT_LOCATION, SUBMIT_BOX_LOCATION, BOTTOM_LINE_LOCATION, UPPER_LINE_LOCATION,
-            ANALYSIS_LOCATION, IDEAL_SOLUTIONS_LOCATION
+            ANALYSIS_LOCATION, IDEAL_SOLUTIONS_LOCATION, TABLES_AT_TOP
     };
 
     static Map<String, String> alreadyParsedProblems;
+    static StringBuilder globalProblemsFound;
 
-    private static WebDriver driver = new SilentHtmlUnitDriver();
+    private static WebDriver driver = new SilentHtmlUnitDriver(true);
 
     private static ArgumentsParser argumentsParser;
 
@@ -50,48 +54,69 @@ public class Parser {
         return s.hasNext() ? s.next() : "";
     }
 
-    public static void main(String[] args) throws JSAPException {
+    public static void main(String[] args) throws JSAPException, IOException {
+        currTimeStr = new SimpleDateFormat("yyyyMMddHHmm").format(new Date());
         argumentsParser = new ArgumentsParser(args);
         argumentsParser.processArgs();
         alreadyParsedProblems = new HashMap<>();
+        globalProblemsFound = new StringBuilder();
+
+        try {
+            ObjectInputStream allPreviouslySavedProblems = new ObjectInputStream(new FileInputStream(argumentsParser.getAlreadyParsedProblemsFilename()));
+            alreadyParsedProblems = (HashMap<String, String>)allPreviouslySavedProblems.readObject();
+            allPreviouslySavedProblems.close();
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+            System.out.println("Failed to load previuosly saved alreadyParsedProblems (filename:``" + argumentsParser.getAlreadyParsedProblemsFilename() + "'')");
+        }
+
+//        TableFromSubmits tableFromSubmits = new TableFromSubmits(argumentsParser);
 
         System.out.println("Parser started!");
 
-        Table table = new Table(driver, argumentsParser.getTableUrl());
-        System.out.println("Table parsed!");
+        TableAbstract table = null;
+        switch (argumentsParser.getWhatTable()) {
+            case SUBMITS_ONLINE:
+                table = new TableFromSubmits(argumentsParser);
+                System.out.println("Submits table parsed!");
+                break;
+            case RESULTS_ONLINE:
+                table = new TableFromResults(argumentsParser);
+                System.out.println("Results table (online) parsed!");
+                break;
+            case RESULTS_SAVED:
+                table = new TableFromSavedResults(argumentsParser);
+                System.out.println("Results table (saved) parsed!");
+                break;
+            default:
+                throw new IllegalArgumentException("Illegal type of table");
+        }
+        table.printTable();
 
-        for(int studIdx=0; studIdx<table.getStudentsNumber(); studIdx++) {
-            if(table.getSolvedProblemsNum()[studIdx] < argumentsParser.getNumForChoose1()) {
+        boolean inetDownloadAlreadyUsed = false;
+        for(int studIdx=0; studIdx< table.getStudentsNumber(); studIdx++) {
+            int numProblemsToGet = argumentsParser.getChosenNumberForSolved(table.getSolvedProblemsNum(studIdx));
+            String studentName = table.getStudentNames(studIdx);
+            String participantDir = HOME_DIR + File.separator + currTimeStr + File.separator + studentName;
+            if(!table.doProposeDefence(table.getSolvedProblemsNum(studIdx))) {
+                System.out.println("Student " + studentName + " skipped because too few problems");
                 continue;
             }
-            Participant participant = new Participant(studIdx+1, table);
-            String participantDir = HOME_DIR + File.separator + table.getStudentNames()[participant.getNumber()-1];
+            System.out.println("Starting to download problem statements for student " + studentName);
             if(!argumentsParser.getBlockSubDir().isEmpty()) {
                 participantDir = participantDir + File.separator + argumentsParser.getBlockSubDir();
             }
             File dir = new File(participantDir);
             dir.mkdirs();
             System.setProperty("user.dir", participantDir);
-            int numProblemsToGet = 1;
-            if(table.getSolvedProblemsNum()[studIdx] >= argumentsParser.getNumForChoose2()) {
-                numProblemsToGet = 2;
-            }
             for (int theProb = 0; theProb < numProblemsToGet; theProb++) {
                 try {
-                    if (theProb > 0) {
-                        Thread.sleep(argumentsParser.getTimeout());
-                    }
-                    parseProblemForStudent(participant, table, participantDir);
-                } catch (IllegalArgumentException e) {
-                    System.out.println("All available solves parsed. Exiting...");
-                    break;
+                    inetDownloadAlreadyUsed = parseProblemForStudent(studIdx, table, participantDir, inetDownloadAlreadyUsed);
+//                    parseProblemForStudent(participant, table, participantDir);
                 } catch (IOException ex) {
                     System.err.println(ex.toString());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
             }
-
         }
 
 /*
@@ -119,6 +144,20 @@ public class Parser {
             }
         }
 */
+        try {
+            ObjectOutputStream saveAllParsedProblems = new ObjectOutputStream(new FileOutputStream(argumentsParser.getAlreadyParsedProblemsFilename()));
+            saveAllParsedProblems.writeObject(alreadyParsedProblems);
+            saveAllParsedProblems.flush();
+
+            saveAllParsedProblems.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.out.println("Failed to save all alreadyParsedProblems to a text file for later use (filename: ``" + argumentsParser.getAlreadyParsedProblemsFilename() + "'')");
+        }
+        if(globalProblemsFound.length() > 10) {
+            System.err.println("There were fails:\n" + globalProblemsFound);
+        }
+
     }
 
     private static void copyResourcesInto(File dir) throws IOException {
@@ -139,9 +178,10 @@ public class Parser {
         themeWriter.close();
     }
 
-    private static void parseProblemForStudent(Participant participant, Table table, String participantDir) throws IOException, IllegalArgumentException {
-        String problemChar = participant.getRandomProblemChar(table);
-        String problemName = "Задача " + problemChar;
+    private static boolean parseProblemForStudent(/*Participant participant, */ Integer studIdx, TableAbstract table, String participantDir, boolean sleepIfGettingFromSite) throws IOException, IllegalArgumentException {
+//        String problemChar = participant.getRandomProblemChar(table);
+//        String problemName = "Задача " + problemChar;
+        String problemName = table.genRandomSolvedProblemName(studIdx);
 
         String newDir = participantDir + File.separator + problemName;
         File dir = new File(newDir);
@@ -150,26 +190,87 @@ public class Parser {
         System.setProperty("user.dir", newDir);
 
         String textToSaveNow = null;
-        if(!alreadyParsedProblems.containsKey(problemName)) {
-            WebElement link = driver.findElement(By.partialLinkText(problemName));
-            link.click();
-
-            Document page = Jsoup.parse(driver.getPageSource());
-            textToSaveNow = cleanPage(page);
+        if (!alreadyParsedProblems.containsKey(problemName)) {
+            int triesToGetStatement = 0;
+            do {
+                if (sleepIfGettingFromSite) {
+                    try {
+                        Thread.sleep(argumentsParser.getTimeout());
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                if(triesToGetStatement > 0) {
+                    System.err.println("_R_E_trying to get problem statement for problemName = " + problemName);
+                }
+                Document page = table.getProblemPage(problemName);
+                textToSaveNow = cleanPage(page);
+                triesToGetStatement++;
+                sleepIfGettingFromSite = true;
+            } while((textToSaveNow==null || textToSaveNow.length() < 40)  &&  triesToGetStatement < 5);
+            if(textToSaveNow==null || textToSaveNow.length() < 40) {
+                globalProblemsFound.append("statement for problemName = " + problemName + " _F_A_I_L_E_D_\n");
+            }
+/*            if(problemName.matches("[^\\s\\dA-Za-z]+\\s+\\d{1,6}")) {
+            // to use memoization for GLOBAL numbering ONLY!!!; otherwise, we'll get collisions
+                alreadyParsedProblems.put(problemName, textToSaveNow);
+            }
+*/
             alreadyParsedProblems.put(problemName, textToSaveNow);
         } else {
             textToSaveNow = alreadyParsedProblems.get(problemName);
+            System.out.println("Problem ``" + problemName + "'' statement was got from local cash");
+/*
+            if(argumentsParser.getWhatTable()==WhatTableEnum.SUBMITS_ONLINE  &&  problemName.matches("[^\\s\\dA-Za-z]+\\s+\\d{1,6}")
+                    ||  argumentsParser.getWhatTable()==WhatTableEnum.RESULTS_SAVED) {
+            // WAS to use memoization for GLOBAL numbering ONLY!!!; otherwise, we'll get collisions;
+            // later memoization for inside-gri
+                textToSaveNow = alreadyParsedProblems.get(problemName);
+            } else {
+                System.err.println("ERROR!!! alreadyParsedProblems.containsKey(problemName) is true, but problemName.matches(\"[^\\\\s\\\\dA-Za-z]+\\\\s+\\\\d{1,6}\") is false\n");
+            }
+*/
         }
 
 
-        participant.writeHtmlToFile(textToSaveNow, newDir, problemName);
+//        participant.writeHtmlToFile(textToSaveNow, newDir, problemName);
+        try (PrintWriter writer = new PrintWriter(dir + File.separator + problemName + ".html", "UTF-8")) {
+            writer.print(textToSaveNow);
+        }
+
         copyResourcesInto(dir);
 
         System.setProperty("user.dir", HOME_DIR);
-        System.out.println("Problem " + problemChar + " successfully parsed!");
+        System.out.println(problemName + " successfully parsed!");
+
+        return sleepIfGettingFromSite;
     }
 
     private static String cleanPage(Document page) {
+
+//        for (String location : TO_REMOVE) {
+//            page.select(location).remove();
+//        }
+
+//        String html = page.select(CONTENT_LOCATION).html();
+
+//        String start = "<html>"
+//                + "<head>"
+//                + "<meta content=\"text/html; charset=utf-8\" http-equiv=\"content-type\"></meta>"
+//                + "<link rel=\"stylesheet\" type=\"text/css\" href=\"polygon.css\">"
+//                + "<link rel=\"stylesheet\" type=\"text/css\" href=\"statements_theme.css\">"
+//                + "<script type=\"text/javascript\" src=\"LaTeXMathML.js\"></script>"
+//                + "</head>"
+//                + "<body>";
+//        String end = "</body></html>";
+//
+//        Pattern p = Pattern.compile("^(\\s+(<br\\s*/>)?\\n?)", Pattern.MULTILINE);
+//        html = p.matcher(html).replaceAll("");
+//
+//        html = start + html + end;
+
+//        return html;
+
         for (String location : TO_REMOVE) {
             page.select(location).remove();
         }
@@ -192,6 +293,9 @@ public class Parser {
         html = start + html + end;
 
         return html;
+
+
+
     }
 
 }
